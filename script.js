@@ -22,9 +22,41 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 1. Gestion du Menu Mobile ---
     const burger = document.querySelector('.burger');
     const nav = document.querySelector('.nav-links');
-    if(burger) {
+
+    if (burger && nav) {
+        // Voile sombre derrière le menu ouvert
+        const overlay = document.createElement('div');
+        overlay.className = 'nav-overlay';
+        document.body.appendChild(overlay);
+
+        const ouvrirFermer = (ouvrir) => {
+            nav.classList.toggle('nav-active', ouvrir);
+            burger.classList.toggle('open', ouvrir);
+            overlay.classList.toggle('active', ouvrir);
+            document.body.classList.toggle('menu-open', ouvrir);
+            burger.setAttribute('aria-expanded', ouvrir ? 'true' : 'false');
+        };
+
         burger.addEventListener('click', () => {
-            nav.classList.toggle('nav-active');
+            ouvrirFermer(!nav.classList.contains('nav-active'));
+        });
+
+        // Le menu se referme après avoir choisi une destination
+        nav.querySelectorAll('a').forEach(lien => {
+            lien.addEventListener('click', () => ouvrirFermer(false));
+        });
+
+        overlay.addEventListener('click', () => ouvrirFermer(false));
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') ouvrirFermer(false);
+        });
+
+        // Si l'écran repasse en grand format, on remet tout à zéro
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768 && nav.classList.contains('nav-active')) {
+                ouvrirFermer(false);
+            }
         });
     }
 
@@ -32,6 +64,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const galleryGrid = document.getElementById('gallery-grid');
     const lightbox = document.createElement('div');
     lightbox.id = 'lightbox';
+    const lightboxImg = document.createElement('img');
+    lightboxImg.alt = '';
+    lightbox.appendChild(lightboxImg);
     document.body.appendChild(lightbox);
 
     if(galleryGrid) {
@@ -51,17 +86,32 @@ document.addEventListener('DOMContentLoaded', () => {
             galleryGrid.appendChild(div);
 
             div.addEventListener('click', () => {
+                lightboxImg.src = img.src;
+                lightboxImg.alt = img.alt;
                 lightbox.classList.add('active');
-                const bigImg = document.createElement('img');
-                bigImg.src = img.src;
-                while (lightbox.firstChild) { lightbox.removeChild(lightbox.firstChild); }
-                lightbox.appendChild(bigImg);
+                // Fige la page derrière la photo et masque la barre de nav
+                document.body.classList.add('menu-open', 'lightbox-open');
             });
         }
     }
 
-    lightbox.addEventListener('click', () => {
+    // Bouton de fermeture visible (l'appui n'importe où fonctionne aussi)
+    const lightboxClose = document.createElement('button');
+    lightboxClose.className = 'lightbox-close';
+    lightboxClose.type = 'button';
+    lightboxClose.setAttribute('aria-label', 'Fermer la photo');
+    lightboxClose.innerHTML = '&times;';
+    lightbox.appendChild(lightboxClose);
+
+    function fermerLightbox() {
         lightbox.classList.remove('active');
+        document.body.classList.remove('menu-open', 'lightbox-open');
+    }
+
+    lightbox.addEventListener('click', fermerLightbox);
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') fermerLightbox();
     });
 
     // --- 3. Fonction pour charger les avis ---
@@ -200,6 +250,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault();
                 dateWarning.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
+        });
+    }
+
+    // --- 5ter. Carte : on évite qu'un glissement de doigt soit capté par
+    //           l'iframe au lieu de faire défiler la page ---
+    const mapSection = document.querySelector('.map-section');
+    if (mapSection) {
+        mapSection.classList.add('map-locked');
+        mapSection.addEventListener('click', () => {
+            mapSection.classList.remove('map-locked');
         });
     }
 

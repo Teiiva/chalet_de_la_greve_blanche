@@ -43,7 +43,9 @@ ul { list-style: none; }
     padding: 0 20px;
 }
 
-.section-padding { padding: 80px 0; }
+/* padding-top/bottom séparés : la forme courte "80px 0" écrasait le padding
+   latéral de .container sur les sections qui cumulent les deux classes */
+.section-padding { padding-top: 80px; padding-bottom: 80px; }
 .text-center { text-align: center; }
 .bg-light { background-color: var(--white); }
 .bg-blue { background-color: var(--primary); color: var(--white); }
@@ -287,7 +289,10 @@ header {
 
 .calendar-grid {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    /* minmax(0, 1fr) et non 1fr : sinon la largeur minimale d'une case
+       (padding + chiffre) empêche les colonnes de se réduire et le
+       calendrier déborde sur les petits écrans */
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     gap: 5px;
     text-align: center;
 }
@@ -391,30 +396,31 @@ footer {
 
 .footer-links a { color: var(--text-light); font-size: 0.9rem; margin: 0 10px;}
 
-/* --- Responsive Mobile --- */
-.burger { display: none; cursor: pointer; }
-
-@media (max-width: 768px) {
-    .burger { display: block; }
-    .nav-links {
-        position: absolute;
-        right: 0px;
-        height: 92vh;
-        top: 8vh;
-        background-color: var(--white);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        width: 100%;
-        transform: translateX(100%);
-        transition: transform 0.5s ease-in;
-        padding-top: 50px;
-    }
-    .nav-links.nav-active { transform: translateX(0%); }
-    .hero-content h1 { font-size: 2rem; }
-    .intro-grid, .contact-wrapper { grid-template-columns: 1fr; gap: 2rem; }
-    .contact-form .form-row { grid-template-columns: 1fr; }
+/* --- Bouton burger --- */
+.burger {
+    display: none;
+    cursor: pointer;
+    padding: 10px;
+    margin: -10px;
+    background: none;
+    border: none;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
 }
+
+.burger div {
+    width: 26px;
+    height: 3px;
+    margin: 5px 0;
+    background-color: var(--primary);
+    border-radius: 3px;
+    transition: transform 0.3s ease, opacity 0.2s ease;
+}
+
+/* Croix quand le menu est ouvert */
+.burger.open .line1 { transform: translateY(8px) rotate(45deg); }
+.burger.open .line2 { opacity: 0; }
+.burger.open .line3 { transform: translateY(-8px) rotate(-45deg); }
 
 /* --- Lightbox (Images en grand) --- */
 #lightbox {
@@ -843,7 +849,13 @@ footer {
 .publish-card { border-left: 3px solid var(--secondary); }
 
 @media (max-width: 900px) {
-    .admin-grid { grid-template-columns: 1fr; }
+    /* minmax(0,1fr) : sans ça la colonne prend la largeur mini de son contenu
+       (les longs libellés de boutons) et dépasse l'écran */
+    .admin-grid { grid-template-columns: minmax(0, 1fr); }
+    .admin-side, .admin-card { min-width: 0; }
+    .admin-actions .btn-primary,
+    .admin-actions .btn-secondary,
+    .admin-actions .btn-ghost { min-width: 0; }
     .admin-header { padding: 12px 16px; }
     .admin-main { padding: 20px 14px 40px; }
 }
@@ -865,3 +877,267 @@ footer {
 
 /* Évite que l'en-tête collant masque l'élément visé lors d'un défilement */
 .admin-body { scroll-padding-top: 90px; }
+
+/* =====================================================================
+   ERGONOMIE MOBILE
+   ===================================================================== */
+
+/* Aucun débordement horizontal (le menu hors-écran élargissait la page
+   et forçait le navigateur à dézoomer tout le site) */
+html, body { overflow-x: hidden; max-width: 100%; }
+
+/* Les ancres ne doivent pas atterrir sous la barre de navigation fixe */
+html { scroll-padding-top: 90px; }
+
+/* Les effets de survol n'ont pas de sens au doigt : ils restaient "collés"
+   après un appui sur mobile */
+@media (hover: none) {
+    .card:hover,
+    .review-card:hover,
+    .btn-primary:hover,
+    .day:hover,
+    .gallery-item:hover img { transform: none; box-shadow: none; }
+}
+
+/* Zone de contact confortable sur tous les liens/boutons tactiles */
+a, button, .day, .gallery-item { -webkit-tap-highlight-color: rgba(25, 80, 98, 0.12); }
+
+/* ---------- Tablette et moins ---------- */
+@media (max-width: 900px) {
+    .map-section iframe { height: 320px; }
+}
+
+/* ---------- Mobile (≤ 768px) ---------- */
+@media (max-width: 768px) {
+
+    /* --- Navigation --- */
+    /* z-index : le burger doit rester au-dessus du panneau pour servir
+       de bouton "fermer" (croix) */
+    .burger { display: block; position: relative; z-index: 1001; }
+
+    /* backdrop-filter crée un bloc conteneur : le menu en position fixed se
+       retrouverait enfermé dans la hauteur de la barre au lieu de couvrir
+       l'écran. On le désactive sur mobile (le fond est déjà quasi opaque). */
+    .navbar { padding: 0.7rem 4%; gap: 10px; backdrop-filter: none; }
+
+    .logo { font-size: 1rem; line-height: 1.25; }
+    .logo img { width: 32px; height: 32px; margin-right: 7px !important; }
+
+    .nav-links {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: min(320px, 82%);
+        background-color: var(--white);
+        box-shadow: -8px 0 30px rgba(0,0,0,0.15);
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        padding: 90px 0 30px;
+        transform: translateX(105%);
+        transition: transform 0.35s ease;
+        overflow-y: auto;
+        z-index: 999;
+    }
+
+    .nav-links.nav-active { transform: translateX(0); }
+
+    .nav-links li { width: 100%; }
+
+    .nav-links a {
+        display: block;
+        padding: 16px 26px;
+        font-size: 1.05rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .nav-links .btn-nav {
+        margin: 22px 26px 0;
+        text-align: center;
+        border-radius: 50px;
+        border-bottom: none;
+        padding: 15px 20px;
+    }
+
+    /* Voile sombre derrière le menu ouvert */
+    .nav-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.45);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+        z-index: 998;
+    }
+
+    .nav-overlay.active { opacity: 1; pointer-events: auto; }
+
+    body.menu-open { overflow: hidden; }
+
+    /* --- Hero --- */
+    header {
+        /* background-attachment: fixed est cassé sur iOS (image étirée/figée) */
+        background-attachment: scroll;
+        height: 100svh;
+        min-height: 520px;
+    }
+
+    .hero-content { padding: 20px 24px; }
+    .hero-content h1 { font-size: clamp(1.75rem, 7.5vw, 2.3rem); line-height: 1.25; }
+    .hero-content p { font-size: 1.05rem; }
+
+    /* --- Rythme général --- */
+    .section-padding { padding-top: 55px; padding-bottom: 55px; }
+    .container { padding: 0 18px; }
+
+    h2 { font-size: 1.6rem; }
+    #availability h2 { font-size: 1.7rem; margin-bottom: 25px; }
+
+    /* --- Le bien --- */
+    .intro-grid, .contact-wrapper { grid-template-columns: 1fr; gap: 2rem; }
+    .features-box { padding: 24px 22px; }
+    .environment-tags { gap: 10px; }
+
+    /* --- Galerie : 2 colonnes carrées plutôt qu'une seule bande --- */
+    .gallery-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-top: 25px;
+    }
+
+    .gallery-item { height: auto; aspect-ratio: 1 / 1; }
+
+    /* --- Calendrier --- */
+    .calendar-wrapper { padding: 18px 14px; margin-top: 25px; }
+    .calendar-grid { gap: 5px; padding: 0; }
+    .calendar-header { margin-bottom: 14px; }
+    .calendar-header #monthYear { font-size: 1.1rem; }
+    .calendar-header button { width: 42px; height: 42px; }
+    .day { font-size: 0.85rem; border-radius: 6px; }
+    .calendar-grid .day-name { font-size: 0.65rem; padding: 2px 0; }
+    .calendar-legend { flex-wrap: wrap; gap: 8px; }
+    .calendar-note { font-size: 0.8rem; }
+
+    /* --- Livre d'or & formulaires --- */
+    .review-form-wrapper { padding: 25px 20px; }
+    .review-card { padding: 22px; }
+    .contact-wrapper { padding: 25px 20px; }
+    .contact-form .form-row { grid-template-columns: 1fr; gap: 0; margin-bottom: 0; }
+    .info-item { font-size: 1rem; gap: 12px; }
+
+    /* 16px minimum : en dessous, iOS zoome automatiquement sur le champ actif */
+    input, select, textarea {
+        font-size: 16px;
+        padding: 14px 13px;
+        margin-bottom: 14px;
+    }
+
+    .date-group { margin-bottom: 6px; }
+    .date-group label { display: block; margin-bottom: 4px; font-size: 0.85rem; font-weight: 600; }
+
+    .btn-primary, .btn-secondary, .btn-nav { padding: 14px 26px; }
+    .btn-primary.full-width { width: 100%; }
+
+    /* --- Modal équipements --- */
+    .modal-content { padding: 30px 20px; width: 92%; max-height: 85vh; }
+    .modal-grid { grid-template-columns: 1fr; gap: 18px; }
+    .close-modal {
+        top: 6px; right: 10px;
+        width: 44px; height: 44px;
+        display: flex; align-items: center; justify-content: center;
+    }
+
+    /* --- Pied de page --- */
+    footer { padding: 30px 0; }
+    footer p { font-size: 0.85rem; }
+    .footer-links { margin-top: 8px; }
+    .footer-links a { display: inline-block; padding: 10px 6px; }
+
+    /* --- Lightbox --- */
+    #lightbox img { max-width: 94%; max-height: 78%; }
+}
+
+/* ---------- Petits écrans (≤ 380px) ---------- */
+@media (max-width: 380px) {
+    .logo { font-size: 0.9rem; }
+    .logo img { width: 28px; height: 28px; }
+    .calendar-wrapper { padding: 14px 8px; }
+    .day { font-size: 0.8rem; }
+    .calendar-grid { gap: 4px; }
+    .hero-content h1 { font-size: 1.6rem; }
+}
+
+/* ---------- Espace propriétaire sur mobile ---------- */
+@media (max-width: 768px) {
+    .admin-header { padding: 12px 14px; }
+    .admin-header-left strong { font-size: 0.95rem; }
+    .admin-card { padding: 20px 16px; }
+    .admin-calendar .day { font-size: 0.9rem; }
+    /* flex-basis 140px : deux boutons côte à côte s'ils tiennent,
+       empilés sinon — sans jamais déborder de l'écran */
+    .admin-actions .btn-primary,
+    .admin-actions .btn-secondary,
+    .admin-actions .btn-ghost { flex: 1 1 140px; padding: 14px 12px; justify-content: center; }
+    .admin-field input[type="date"] { font-size: 16px; padding: 14px; }
+    .admin-login-box { padding: 35px 25px; }
+    .period-list { max-height: none; }
+    .icon-btn { width: 42px; height: 42px; }
+}
+
+/* --- Lightbox : bouton de fermeture --- */
+.lightbox-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 46px;
+    height: 46px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    color: var(--white);
+    font-size: 2rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* --- Carte : verrouillée tant qu'on n'a pas tapé dessus --- */
+.map-section { position: relative; }
+
+.map-section.map-locked::after {
+    content: "Toucher la carte pour l'activer";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 14px;
+    font-size: 0.8rem;
+    font-family: var(--font-body);
+    color: var(--white);
+    text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+    background: transparent;
+    cursor: pointer;
+}
+
+.map-section.map-locked iframe { pointer-events: none; }
+
+@media (hover: hover) {
+    /* Sur ordinateur la carte reste utilisable directement */
+    .map-section.map-locked iframe { pointer-events: auto; }
+    .map-section.map-locked::after { display: none; }
+}
+
+/* La barre de navigation s'efface derrière la photo plein écran */
+body.lightbox-open .navbar { opacity: 0; visibility: hidden; }
+
+@media (max-width: 768px) {
+    /* Les cases ne doivent jamais imposer leur largeur mini à la grille */
+    .day { padding: 6px 2px; min-width: 0; }
+    .admin-calendar .calendar-wrapper,
+    .admin-card .calendar-wrapper { padding: 0; }
+}
