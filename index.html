@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Le Chalet de la Grève Blanche | Location Atypique au Guilvinec</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="onglet_logo.svg">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="logo">
+            <img src="logo.svg" alt="Logo Chalet Grève Blanche" width="40" height="40" style="vertical-align: middle; margin-right: 10px;">
+            <span style="vertical-align: middle;">
+                Le Chalet de la <span class="accent">Grève Blanche</span>
+            </span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#home">Accueil</a></li>
+            <li><a href="#details">Le Bien</a></li>
+            <li><a href="#gallery">Photos</a></li>
+            <li><a href="#availability">Disponibilités</a></li>
+            <li><a href="#guestbook">Livre d'Or</a></li>
+            <li><a href="#contact" class="btn-nav">Réserver</a></li>
+        </ul>
+        <div class="burger">
+            <div class="line1"></div>
+            <div class="line2"></div>
+            <div class="line3"></div>
+        </div>
+    </nav>
+
+    <header id="home">
+        <div class="hero-content">
+            <h1>Bienvenue au Chalet de la Grève Blanche</h1>
+            <p>Entre terre et mer, un havre de paix au Guilvinec.</p>
+            <a href="#details" class="btn-primary">Découvrir le lieu</a>
+        </div>
+        <div class="hero-overlay"></div>
+    </header>
+
+    <section id="details" class="container section-padding">
+        <div class="intro-grid">
+            <div class="text-content">
+                <h2>Location Atypique & Tout Confort</h2>
+                <p class="lead">Mobil-home neuf et chalet pour 8 personnes.</p>
+                <p>Situé au domaine de la Grève Blanche, cet hébergement unique offre confort et tranquillité à seulement 100 mètres de la plage, sans route à traverser. Idéal pour les familles et les amateurs de sports nautiques (planche, kite, wing, kayak).</p>
+                <p>À proximité : terrain de beach volley, street workout, et jeux pour enfants. Profitez d’un séjour au calme, entre nature et océan.</p>
+                
+                <div class="environment-tags">
+                    <span><i class="fas fa-water"></i> 100m Plage</span>
+                    <span><i class="fas fa-bicycle"></i> Pistes cyclables</span>
+                    <span><i class="fas fa-shopping-basket"></i> Marchés locaux</span>
+                </div>
+            </div>
+            <div class="features-box">
+                <h3>Les Points Forts</h3>
+                <ul class="features-list">
+                    <li><i class="fas fa-wifi"></i> Wifi Gratuit</li>
+                    <li><i class="fas fa-parking"></i> Parking (4 places)</li>
+                    <li><i class="fas fa-tv"></i> TV & Multimédia</li>
+                    <li><i class="fas fa-utensils"></i> Cuisine équipée</li>
+                    <li><i class="fas fa-tree"></i> Grand Jardin Privé</li>
+                    <li><i class="fas fa-fire"></i> Barbecue Gaz</li>
+                    <li><i class="fas fa-umbrella-beach"></i> Terrasse couverte</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section class="bg-light section-padding">
+        <div class="container">
+            <h2 class="text-center">Capacité & Hébergement</h2>
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="card-header"><i class="fas fa-home"></i> Mobil-home</div>
+                    <div class="card-body">
+                        <p><strong>4 Couchages</strong></p>
+                        <ul>
+                            <li>1 Lit double</li>
+                            <li>2 Lits simples</li>
+                            <li>Salle d'eau & WC séparés</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><i class="fas fa-warehouse"></i> Chalet</div>
+                    <div class="card-body">
+                        <p><strong>4 Couchages</strong></p>
+                        <ul>
+                            <li>1 Lit double (Mezzanine)</li>
+                            <li>2 Lits simples (Mezzanine)</li>
+                            <li>Salle d'eau avec WC</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-2">
+                <p class="note">Note : Draps et serviettes non inclus.</p>
+                <button id="openModal" class="btn-secondary">Voir la liste complète des équipements</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="gallery" class="container section-padding">
+        <h2 class="text-center">La Galerie</h2>
+        <p class="text-center sub-title">Plongez dans l'ambiance</p>
+        
+        <div class="gallery-grid" id="gallery-grid">
+            </div>
+    </section>
+
+    <section id="availability" class="bg-blue section-padding">
+        <div class="container">
+            <h2 class="text-center">Disponibilités</h2>
+            <div class="calendar-wrapper">
+                <div class="calendar-header">
+                    <button id="prevMonth" type="button" aria-label="Mois précédent"><i class="fas fa-chevron-left"></i></button>
+                    <h3 id="monthYear">&nbsp;</h3>
+                    <button id="nextMonth" type="button" aria-label="Mois suivant"><i class="fas fa-chevron-right"></i></button>
+                </div>
+                <div class="calendar-grid" id="calendarGrid">
+                    </div>
+                <div class="calendar-legend">
+                    <span class="legend-item"><span class="dot free"></span> Libre</span>
+                    <span class="legend-item"><span class="dot taken"></span> Réservé</span>
+                </div>
+                <p class="calendar-note">Les nuits affichées en rouge sont déjà réservées. Pour toute demande, utilisez le formulaire de contact ci-dessous.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="map-section">
+        <iframe 
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2666.9067084666324!2d-4.30017992358327!3d47.80183790000001!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x481131097434bd01%3A0xb94c73d6f915346b!2sLe%20chalet%20de%20la%20gr%C3%A8ve%20blanche!5e0!3m2!1sfr!2sfr!4v1715600000000!5m2!1sfr!2sfr" 
+            width="100%" 
+            height="450" 
+            style="border:0;" 
+            allowfullscreen="" 
+            loading="lazy" 
+            referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+    </section>
+
+    <section id="guestbook" class="container section-padding">
+        <h2 class="text-center">Livre d'Or</h2>
+        
+        <div class="reviews-container">
+            <div class="review-card">
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p>"Un séjour inoubliable ! Le chalet est magnifique et la proximité avec la plage est un vrai luxe."</p>
+                <div class="author">- Sophie & Marc, Août 2023</div>
+            </div>
+            <div class="review-card">
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p>"Parfait pour notre grande famille. Les équipements sont au top."</p>
+                <div class="author">- La famille Martin, Juillet 2023</div>
+            </div>
+        </div>
+
+        <div class="review-form-wrapper">
+            <h3>Laissez un avis</h3>
+            <form id="reviewForm">
+                <input type="text" name="name" placeholder="Votre Nom" required> 
+                
+                <select name="rating">
+                    <option value="5">⭐⭐⭐⭐⭐</option>
+                    <option value="4">⭐⭐⭐⭐</option>
+                    <option value="3">⭐⭐⭐</option>
+                    <option value="2">⭐⭐</option>
+                    <option value="1">⭐</option>
+                </select>
+
+                <textarea name="review" placeholder="Votre message..." required></textarea>
+                
+                <button type="submit" class="btn-secondary">Envoyer mon avis</button>
+            </form>
+        </div>
+    </section>
+
+
+    <section id="contact" class="bg-light section-padding">
+        <div class="container contact-wrapper">
+            <div class="contact-info">
+                <h2>Contactez-nous</h2>
+                <p>Prêt pour vos vacances ? Envoyez-nous une demande.</p>
+                <div class="info-item"><i class="fas fa-phone"></i> +33 6 00 00 00 00</div>
+                <div class="info-item"><i class="fas fa-envelope"></i> contact@chalet-greveblanche.fr</div>
+                <div class="info-item"><i class="fas fa-map-marker-alt"></i> Domaine de la Grève Blanche, Le Guilvinec</div>
+            </div>
+            
+            <form id="bookingForm" class="contact-form">
+                <div class="form-row">
+                    <input type="text" placeholder="Nom & Prénom" required>
+                    <input type="email" placeholder="Email" required>
+                </div>
+                <div class="form-row">
+                    <input type="tel" placeholder="Téléphone" required>
+                    <select>
+                        <option>Animal de compagnie ?</option>
+                        <option value="non">Non</option>
+                        <option value="oui">Oui</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="date-group">
+                        <label for="dateArrivee">Arrivée</label>
+                        <input type="date" id="dateArrivee" name="arrivee" required>
+                    </div>
+                    <div class="date-group">
+                        <label for="dateDepart">Départ</label>
+                        <input type="date" id="dateDepart" name="depart" required>
+                    </div>
+                </div>
+                <p id="dateWarning" class="date-warning"></p>
+                <div class="form-row">
+                    <input type="number" placeholder="Adultes" min="1" max="8">
+                    <input type="number" placeholder="Enfants" min="0">
+                </div>
+                <textarea placeholder="Votre message..." rows="4"></textarea>
+                <button type="submit" class="btn-primary full-width">Envoyer ma demande</button>
+            </form>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Le Chalet de la Grève Blanche. Tous droits réservés.</p>
+            <div class="footer-links">
+                <a href="#">Mentions Légales</a> | <a href="#">Politique de Confidentialité</a> | <a href="admin.html">Espace propriétaire</a>
+            </div>
+        </div>
+    </footer>
+
+    <div id="amenitiesModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Liste des Équipements</h2>
+            <div class="modal-grid">
+                <div>
+                    <h4><i class="fas fa-utensils"></i> Cuisine</h4>
+                    <p>Frigidaire, Micro-ondes, Machine à café, Plaques, Bouilloire, Grille-pain, Vaisselle, Épices.</p>
+                </div>
+                <div>
+                    <h4><i class="fas fa-bath"></i> Salle de bain</h4>
+                    <p>Douche, Évier, Objets essentiels, WC séparés.</p>
+                </div>
+                <div>
+                    <h4><i class="fas fa-gamepad"></i> Famille & Fun</h4>
+                    <p>Lit bébé, Jeux de société, Livres, Terrain de jeux (400m), TV, Wifi.</p>
+                </div>
+                <div>
+                    <h4><i class="fas fa-leaf"></i> Extérieur</h4>
+                    <p>Terrasse couverte, Salon de jardin, Barbecue Gaz, Terrain clôturé.</p>
+                </div>
+                <div>
+                    <h4><i class="fas fa-shield-alt"></i> Sécurité</h4>
+                    <p>Extincteur, Kit secours, Détecteur fumée.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="bookings-data.js"></script>
+    <script src="calendar.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

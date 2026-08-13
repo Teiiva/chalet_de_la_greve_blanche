@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Espace propriétaire | Le Chalet de la Grève Blanche</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="onglet_logo.svg">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="admin-body">
+
+    <!-- ============ ÉCRAN DE CONNEXION ============ -->
+    <div id="loginScreen" class="admin-login">
+        <form id="loginForm" class="admin-login-box">
+            <img src="logo.svg" alt="Logo" width="60" height="60">
+            <h1>Espace propriétaire</h1>
+            <p>Gestion du calendrier de réservation</p>
+            <input type="password" id="passwordInput" placeholder="Mot de passe" autocomplete="current-password" required>
+            <button type="submit" class="btn-primary full-width">Se connecter</button>
+            <p id="loginError" class="login-error"></p>
+        </form>
+    </div>
+
+    <!-- ============ INTERFACE D'ADMINISTRATION ============ -->
+    <div id="adminApp" class="admin-app" hidden>
+
+        <div class="admin-header">
+            <div class="admin-header-left">
+                <img src="logo.svg" alt="Logo" width="36" height="36">
+                <div>
+                    <strong>Espace propriétaire</strong>
+                    <span>Le Chalet de la Grève Blanche</span>
+                </div>
+            </div>
+            <div class="admin-header-right">
+                <a href="index.html" class="btn-ghost"><i class="fas fa-eye"></i> Voir le site</a>
+                <button id="logoutBtn" type="button" class="btn-ghost"><i class="fas fa-right-from-bracket"></i> Déconnexion</button>
+            </div>
+        </div>
+
+        <main class="admin-main">
+
+            <div class="admin-grid">
+
+                <!-- Colonne gauche : calendrier -->
+                <section class="admin-card">
+                    <h2>Calendrier</h2>
+                    <p class="admin-hint">Cliquez sur un jour pour le basculer entre <strong>libre</strong> et <strong>réservé</strong>.</p>
+
+                    <div class="calendar-wrapper admin-calendar">
+                        <div class="calendar-header">
+                            <button id="prevMonth" type="button" aria-label="Mois précédent"><i class="fas fa-chevron-left"></i></button>
+                            <h3 id="monthYear">&nbsp;</h3>
+                            <button id="nextMonth" type="button" aria-label="Mois suivant"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                        <div class="calendar-grid" id="calendarGrid"></div>
+                        <div class="calendar-legend">
+                            <span class="legend-item"><span class="dot free"></span> Libre</span>
+                            <span class="legend-item"><span class="dot taken"></span> Réservé</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Colonne droite -->
+                <div class="admin-side">
+
+                    <section class="admin-card">
+                        <h2>Bloquer une période</h2>
+                        <div class="admin-field">
+                            <label for="rangeStart">Du</label>
+                            <input type="date" id="rangeStart">
+                        </div>
+                        <div class="admin-field">
+                            <label for="rangeEnd">Au (inclus)</label>
+                            <input type="date" id="rangeEnd">
+                        </div>
+                        <div class="admin-actions">
+                            <button id="blockRange" type="button" class="btn-primary"><i class="fas fa-lock"></i> Réserver</button>
+                            <button id="freeRange" type="button" class="btn-secondary"><i class="fas fa-lock-open"></i> Libérer</button>
+                        </div>
+                        <p id="rangeMsg" class="admin-msg"></p>
+                    </section>
+
+                    <section class="admin-card">
+                        <h2>Périodes réservées <span id="periodCount" class="badge">0</span></h2>
+                        <div id="periodList" class="period-list"></div>
+                    </section>
+
+                    <section class="admin-card publish-card">
+                        <h2>Publier les modifications</h2>
+                        <p class="admin-hint">Vos changements sont enregistrés dans ce navigateur. Pour qu'ils apparaissent chez vos visiteurs, téléchargez le fichier et remplacez <code>bookings-data.js</code> sur le site.</p>
+                        <div class="admin-actions">
+                            <button id="downloadBtn" type="button" class="btn-primary"><i class="fas fa-download"></i> Télécharger le fichier</button>
+                            <button id="resetBtn" type="button" class="btn-ghost danger"><i class="fas fa-rotate-left"></i> Revenir au fichier publié</button>
+                        </div>
+                        <p id="publishState" class="admin-msg"></p>
+                    </section>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="bookings-data.js"></script>
+    <script src="calendar.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>
