@@ -3,6 +3,21 @@
 Guide complet : sécurité, anti-spam, hébergement, référencement.
 Compter **1 à 2 heures** pour tout faire la première fois.
 
+## Dans quel ordre s'y prendre
+
+Tout n'est pas nécessaire le même jour. Le site peut être en ligne aujourd'hui,
+gratuitement, sans nom de domaine ni compte Resend.
+
+**Aujourd'hui — le site en ligne et sécurisé (0 €) :**
+étape 1 (Supabase) → étape 2 (captcha) → étapes 3.1 à 3.3 (publication).
+Vous obtenez une adresse `votre-projet.pages.dev` qui fonctionne parfaitement :
+calendrier, espace propriétaire, formulaire protégé, demandes enregistrées.
+
+**Quand vous aurez acheté le domaine (≈ 9 €/an) :**
+étape 3.4 (brancher le domaine) → étape 4 (emails) → étape 5 (référencement).
+Le référencement se fait avec le vrai domaine : inutile de l'entamer avant, ce
+serait à refaire.
+
 ---
 
 ## Ce que ça coûte
@@ -97,7 +112,10 @@ Un site qui reçoit des visiteurs reste actif tout seul. En basse saison, connec
 ## Étape 2 — Le captcha Turnstile (5 min)
 
 1. [dash.cloudflare.com](https://dash.cloudflare.com) → **Turnstile** → **Add widget**
-2. Nom : `chalet`, Domaine : votre domaine (ajoutez aussi `localhost` pour vos tests)
+2. Nom : `chalet`. Dans **Hostnames**, mettez l'adresse sur laquelle le site tourne
+   réellement — au début `votre-projet.pages.dev`, et plus tard votre domaine.
+   Ajoutez aussi `localhost` pour vos essais. **Un hostname absent = captcha qui
+   refuse tout le monde**, c'est la cause n°1 de « ça ne marche pas ».
 3. Mode : **Managed** (Cloudflare décide seul s'il faut afficher une case à cocher —
    la plupart des visiteurs ne voient rien du tout)
 4. Récupérer les deux clés :
@@ -116,37 +134,92 @@ Un site qui reçoit des visiteurs reste actif tout seul. En basse saison, connec
 
 Deux méthodes, au choix.
 
+> ### ⚠️ Piège important : Pages, pas Worker
+>
+> Le bouton **Create application** de Cloudflare crée un **Worker** par défaut.
+> Ce n'est **pas** ce qu'il faut ici. Il faut chercher l'option **Pages**, plus
+> discrète — un onglet ou un lien « Pages » en bas de l'écran de création.
+>
+> **Comment savoir si vous vous êtes trompé :** regardez l'adresse obtenue.
+> - `xxx.pages.dev` → c'est bon
+> - `xxx.workers.dev` → c'est un Worker, le dossier `functions/` **ne sera pas
+>   exécuté**. Le site s'affichera normalement, mais les formulaires renverront
+>   une erreur, car l'adresse `/api/submit` n'existera pas.
+>
+> Autre test imparable : ouvrez `votre-adresse/functions/api/submit.js` dans le
+> navigateur. Si le **code source s'affiche**, vous êtes sur un Worker et la
+> fonction serveur ne tourne pas. Sur un vrai projet Pages, cette adresse renvoie
+> une erreur 404 — le dossier `functions/` est transformé en code serveur au lieu
+> d'être publié comme un fichier.
+>
+> Si vous avez créé un Worker : recréez simplement un projet **Pages** (le site
+> repart de zéro en 2 minutes), puis supprimez le Worker.
+
 **Le plus simple — glisser-déposer :**
-Cloudflare Dashboard → **Workers & Pages** → **Create** → **Pages** → **Upload assets**.
-Déposez le dossier complet. À refaire à chaque modification.
+Cloudflare Dashboard → **Workers & Pages** → **Create application** → onglet ou
+bouton **Pages** → **Upload assets**. Déposez le dossier complet, `functions/` inclus.
+À refaire à chaque modification.
 
 **Le plus confortable — via GitHub :**
 Créez un dépôt, poussez le dossier, puis **Connect to Git**. Chaque `git push`
 republie le site automatiquement. Aucun réglage de build : laissez les champs
 « Build command » et « Output directory » vides.
 
+À la fin de cette étape, Cloudflare vous donne une adresse du type
+`chalet-greve-blanche.pages.dev`. **Votre site est déjà en ligne et fonctionnel.**
+Le nom de domaine n'est pas nécessaire pour publier : c'est un habillage qu'on
+ajoute quand on veut, sans rien reconstruire.
+
 ### 3.2 Configurer les secrets
 
-**Settings** → **Variables and Secrets** → ajouter (type **Secret** pour les trois premiers) :
+Ouvrir **votre projet** (Workers & Pages → cliquer sur son nom), puis
+**Settings** → **Variables and Secrets** → **Add**.
+
+Trois entrées suffisent pour que le site marche :
 
 | Nom | Type | Valeur |
 |---|---|---|
-| `SUPABASE_SERVICE_KEY` | Secret | la clé service_role de Supabase |
-| `TURNSTILE_SECRET` | Secret | la clé secrète Turnstile |
-| `RESEND_API_KEY` | Secret | votre clé Resend (étape 4) |
 | `SUPABASE_URL` | Variable | `https://etteorrykfeynhloekun.supabase.co` |
+| `SUPABASE_SERVICE_KEY` | Secret | la clé service_role de Supabase (étape 1.4) |
+| `TURNSTILE_SECRET` | Secret | la clé secrète Turnstile (étape 2) |
+
+Les trois suivantes concernent uniquement l'email de notification. **Laissez-les
+de côté pour l'instant** si vous n'avez pas encore de compte Resend : sans elles,
+les demandes arrivent normalement dans votre espace propriétaire, vous n'êtes
+simplement pas prévenu par email. Vous les ajouterez à l'étape 4.
+
+| Nom | Type | Valeur |
+|---|---|---|
+| `RESEND_API_KEY` | Secret | votre clé Resend |
 | `OWNER_EMAIL` | Variable | l'email où recevoir les demandes |
 | `MAIL_FROM` | Variable | `Chalet <contact@votredomaine.fr>` |
 
-Puis **redéployez** : les variables ne sont prises en compte qu'au déploiement suivant.
+### 3.3 Redéployer (obligatoire après chaque ajout de variable)
 
-### 3.3 Brancher le domaine
+Les variables ne sont lues qu'au démarrage d'un déploiement : celui qui tourne
+déjà ne les voit pas. Il faut donc en relancer un.
 
-**Custom domains** → **Set up a domain** → saisir votre domaine. Cloudflare affiche
-deux serveurs DNS (`xxx.ns.cloudflare.com`). Chez OVH : **Domaine** → **Serveurs DNS**
-→ remplacer par ceux de Cloudflare. Comptez de 1 à 24 h de propagation.
+- **Si vous avez publié par glisser-déposer :** projet → **Deployments** →
+  **Create new deployment** → redéposer le dossier. C'est tout.
+- **Si vous avez publié via GitHub :** projet → **Deployments** → sur le
+  déploiement le plus récent, le menu **⋯** (trois points) → **Retry deployment**.
+  Un simple `git push` fait aussi l'affaire.
 
-Le HTTPS s'active tout seul, sans rien faire ni payer.
+### 3.4 Brancher un domaine — plus tard, quand vous en aurez un
+
+Cette étape ne peut pas être faite tant que vous n'avez pas acheté de domaine.
+L'onglet **Custom domains** n'existe **qu'à l'intérieur d'un projet** : Workers &
+Pages → cliquer sur le nom du projet → onglet **Custom domains**. Si vous ne le
+voyez pas, c'est que vous êtes resté sur la liste des projets sans en ouvrir un.
+
+Le jour où vous achetez le domaine : **Custom domains** → **Set up a domain** →
+saisir le domaine. Cloudflare affiche deux serveurs DNS (`xxx.ns.cloudflare.com`).
+Chez OVH : **Domaine** → **Serveurs DNS** → remplacer par ceux de Cloudflare.
+Comptez de 1 à 24 h de propagation. Le HTTPS s'active tout seul, sans rien payer.
+
+> **Pensez alors à deux choses :** ajouter le nouveau domaine dans les domaines
+> autorisés du widget Turnstile, et remplacer `chalet-greve-blanche.fr` par votre
+> vrai domaine dans `index.html`, `config.js`, `robots.txt` et `sitemap.xml`.
 
 ### 3.4 Une protection en plus, gratuite
 
@@ -156,10 +229,14 @@ Un formulaire de contact légitime n'est jamais envoyé 5 fois par minute ; un r
 
 ---
 
-## Étape 4 — Les emails de notification (10 min, facultatif)
+## Étape 4 — Les emails de notification (10 min, facultatif, plus tard)
 
-Sans cette étape, les demandes arrivent quand même dans votre espace propriétaire —
+Rien à faire ici tant que vous n'avez pas de compte Resend : c'est cette étape qui
+le crée. Sans elle, les demandes arrivent quand même dans votre espace propriétaire,
 vous n'êtes simplement pas prévenu par email.
+
+Note : Resend a besoin d'un nom de domaine pour valider l'expéditeur. Vous pouvez
+donc reporter toute cette étape après l'achat du domaine.
 
 1. Créer un compte sur [resend.com](https://resend.com) (gratuit)
 2. **Domains** → **Add domain** → votre domaine → Resend affiche 3 enregistrements DNS

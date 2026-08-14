@@ -62,9 +62,25 @@ document.addEventListener('DOMContentLoaded', function () {
         bouton.textContent = 'Se connecter';
 
         if (res.error) {
-            // Message volontairement vague : on n'indique pas si c'est
-            // l'email ou le mot de passe qui est faux.
-            loginError.textContent = 'Identifiants incorrects.';
+            var brut = res.error.message || '';
+            console.error('Échec de connexion Supabase :', res.error);
+
+            // On reste vague sur les identifiants (ne jamais indiquer si
+            // c'est l'email ou le mot de passe qui est faux), mais on
+            // nomme les problèmes de configuration : sinon impossible
+            // de comprendre pourquoi rien ne marche.
+            if (/email not confirmed/i.test(brut)) {
+                loginError.textContent = "Ce compte n'a pas été confirmé. Dans Supabase : Authentication → Users → votre compte → Confirm email.";
+            } else if (/failed to fetch|networkerror|load failed/i.test(brut)) {
+                loginError.textContent = "Serveur injoignable. Vérifiez supabaseUrl dans config.js : ce doit être https://xxxx.supabase.co, sans /rest/v1/ à la fin.";
+            } else if (/invalid api key|jwt|apikey/i.test(brut)) {
+                loginError.textContent = "Clé Supabase invalide (supabaseKey dans config.js).";
+            } else if (/invalid login credentials/i.test(brut)) {
+                loginError.textContent = 'Identifiants incorrects.';
+            } else {
+                loginError.textContent = 'Connexion impossible : ' + brut;
+            }
+
             passwordInput.value = '';
             passwordInput.focus();
             return;

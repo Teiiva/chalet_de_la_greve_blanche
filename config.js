@@ -12,15 +12,19 @@
 window.SITE_CONFIG = {
 
     // --- Supabase ---
-    // L'URL et la clé "publishable" sont publiques par conception.
+    // ATTENTION : uniquement l'adresse du projet, SANS "/rest/v1/" à la fin.
+    // La bibliothèque Supabase ajoute elle-même /rest/v1/ pour les données
+    // et /auth/v1/ pour la connexion. Avec /rest/v1/ ici, la connexion à
+    // l'espace propriétaire échoue systématiquement.
+    supabaseUrl: 'https://uyxqrhybphjxemapsjhv.supabase.co',
+
+    // Clé "publishable" : publique par conception.
     // Ce qui protège la base, c'est la RLS (voir supabase-setup.sql).
-    supabaseUrl: 'https://uyxqrhybphjxemapsjhv.supabase.co/rest/v1/',
     supabaseKey: 'sb_publishable_YllIix4nvTZLG6Shv3-oFA_JabDisxD',
 
     // --- Cloudflare Turnstile (le captcha) ---
-    // Clé de site publique, à récupérer sur dash.cloudflare.com > Turnstile.
-    // Valeur ci-dessous = clé de TEST officielle Cloudflare : elle valide
-    // toujours. À remplacer par la vraie avant la mise en ligne.
+    // Clé de site publique. Le domaine du site doit figurer dans les
+    // "Hostnames" du widget, sinon le captcha affiche une erreur.
     turnstileSiteKey: '0x4AAAAAAEPtTMwsC1shQQ1E',
 
     // --- Adresse du site en ligne (sert au SEO et aux liens absolus) ---
