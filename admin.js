@@ -1,76 +1,97 @@
 /* =====================================================================
-   admin.js — Espace propriétaire : gestion des dates réservées
+   admin.js — Espace propriétaire
    ---------------------------------------------------------------------
-   ATTENTION : la protection par mot de passe est côté navigateur.
-   Elle empêche un visiteur curieux d'utiliser la page, mais quelqu'un
-   qui lit le code source peut retrouver le mot de passe.
-   Pour une vraie sécurité, il faudra passer par Supabase Auth (V2).
+   Authentification réelle par Supabase Auth (email + mot de passe).
+   Il n'y a plus aucun mot de passe dans ce fichier : c'est le serveur
+   Supabase qui vérifie l'identité, et la RLS de la base qui refuse
+   toute écriture à un visiteur non connecté. Même en trafiquant ce
+   fichier depuis son navigateur, personne ne peut modifier le calendrier.
    ===================================================================== */
-
-var ADMIN_PASSWORD = 'greveblanche2026';   // <-- à changer
 
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
-    var SESSION_KEY = 'chalet_admin_session';
+    var cfg = window.SITE_CONFIG || {};
+    var B = window.Booking;
+
+    var client = (typeof window.supabase !== 'undefined')
+        ? window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseKey)
+        : null;
 
     var loginScreen = document.getElementById('loginScreen');
     var loginForm = document.getElementById('loginForm');
+    var emailInput = document.getElementById('emailInput');
     var passwordInput = document.getElementById('passwordInput');
     var loginError = document.getElementById('loginError');
     var adminApp = document.getElementById('adminApp');
+    var demarre = false;
+
+    if (!client) {
+        loginError.textContent = "Connexion à Supabase impossible. Vérifiez votre accès internet.";
+        return;
+    }
 
     /* ---------- Connexion ---------- */
 
-    function ouvrirAdmin() {
+    function ouvrirAdmin(session) {
         loginScreen.style.display = 'none';
         adminApp.hidden = false;
-        demarrer();
+        var badge = document.getElementById('userEmail');
+        if (badge && session && session.user) badge.textContent = session.user.email;
+        if (!demarre) { demarre = true; demarrer(); }
     }
 
-    if (sessionStorage.getItem(SESSION_KEY) === 'ok') {
-        ouvrirAdmin();
-    }
-
-    loginForm.addEventListener('submit', function (e) {
-        e.preventDefault();
-        if (passwordInput.value === ADMIN_PASSWORD) {
-            sessionStorage.setItem(SESSION_KEY, 'ok');
-            loginError.textContent = '';
-            ouvrirAdmin();
-        } else {
-            loginError.textContent = 'Mot de passe incorrect.';
-            passwordInput.value = '';
-            passwordInput.focus();
-        }
+    // Session déjà active ? (Supabase la conserve dans le navigateur)
+    client.auth.getSession().then(function (res) {
+        if (res.data && res.data.session) ouvrirAdmin(res.data.session);
     });
 
-    document.getElementById('logoutBtn').addEventListener('click', function () {
-        sessionStorage.removeItem(SESSION_KEY);
+    loginForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        loginError.textContent = '';
+        var bouton = loginForm.querySelector('button[type=submit]');
+        bouton.disabled = true;
+        bouton.textContent = 'Connexion…';
+
+        var res = await client.auth.signInWithPassword({
+            email: emailInput.value.trim(),
+            password: passwordInput.value
+        });
+
+        bouton.disabled = false;
+        bouton.textContent = 'Se connecter';
+
+        if (res.error) {
+            // Message volontairement vague : on n'indique pas si c'est
+            // l'email ou le mot de passe qui est faux.
+            loginError.textContent = 'Identifiants incorrects.';
+            passwordInput.value = '';
+            passwordInput.focus();
+            return;
+        }
+        ouvrirAdmin(res.data.session);
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', async function () {
+        await client.auth.signOut();
         window.location.reload();
     });
 
     /* ---------- Application ---------- */
 
     function demarrer() {
-        var B = window.Booking;
-        var booked = B.load().booked.slice();
+        var booked = [];
 
         var periodList = document.getElementById('periodList');
         var periodCount = document.getElementById('periodCount');
-        var publishState = document.getElementById('publishState');
+        var etat = document.getElementById('publishState');
         var rangeStart = document.getElementById('rangeStart');
         var rangeEnd = document.getElementById('rangeEnd');
         var rangeMsg = document.getElementById('rangeMsg');
+        var demandeList = document.getElementById('requestList');
+        var demandeCount = document.getElementById('requestCount');
 
-        // Des modifications locales plus récentes que le fichier publié = non publiées
-        var dirty = (function () {
-            try {
-                var local = JSON.parse(localStorage.getItem(B.STORAGE_KEY) || 'null');
-                var fichier = window.BOOKINGS_DATA || {};
-                return !!(local && new Date(local.updatedAt) > new Date(fichier.updatedAt || 0));
-            } catch (e) { return false; }
-        })();
+        var aujourdhui = B.toISO(B.today());
 
         var cal = new B.Calendar({
             grid: document.getElementById('calendarGrid'),
@@ -80,33 +101,50 @@ document.addEventListener('DOMContentLoaded', function () {
             editable: true,
             monthsAhead: 24,
             onDayClick: function (iso, estReserve) {
-                if (estReserve) {
-                    booked = booked.filter(function (d) { return d !== iso; });
-                } else {
-                    booked.push(iso);
-                }
-                enregistrer();
+                basculer(iso, estReserve);
             }
         });
 
-        var aujourdhui = B.toISO(B.today());
         rangeStart.min = aujourdhui;
         rangeEnd.min = aujourdhui;
 
-        function enregistrer() {
-            booked = booked.filter(function (d, i, a) { return a.indexOf(d) === i; }).sort();
-            B.save(booked);
-            dirty = true;
-            rafraichir();
+        function statut(message, type) {
+            etat.textContent = message;
+            etat.className = 'admin-msg ' + (type || '');
         }
 
-        function rafraichir() {
+        function message(texte, type) {
+            rangeMsg.textContent = texte;
+            rangeMsg.className = 'admin-msg ' + (type || '');
+        }
+
+        /* --- Lecture --- */
+        async function recharger() {
+            statut('Chargement…');
+            booked = await B.fetchBookings(client);
             cal.setBooked(booked);
             afficherPeriodes();
-            publishState.className = 'admin-msg ' + (dirty ? 'warn' : '');
-            publishState.textContent = dirty
-                ? "Modifications enregistrées localement — pensez à télécharger le fichier pour les mettre en ligne."
-                : '';
+            statut('Calendrier à jour.', 'ok');
+        }
+
+        /* --- Écriture : une action = un aller-retour vers la base --- */
+        async function basculer(iso, estReserve) {
+            try {
+                statut('Enregistrement…');
+                if (estReserve) {
+                    await B.removeDates(client, [iso]);
+                    booked = booked.filter(function (d) { return d !== iso; });
+                } else {
+                    await B.addDates(client, [iso]);
+                    booked = booked.concat([iso]);
+                }
+                cal.setBooked(booked);
+                afficherPeriodes();
+                statut(B.formatLong(iso) + (estReserve ? ' : libérée.' : ' : réservée.'), 'ok');
+            } catch (e) {
+                statut('Échec : ' + (e.message || e), 'error');
+                recharger();
+            }
         }
 
         function afficherPeriodes() {
@@ -120,11 +158,11 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             periodList.innerHTML = periodes.map(function (p) {
-                var texte = p.start === p.end
+                var libelle = p.start === p.end
                     ? B.formatLong(p.start)
                     : 'Du ' + B.formatLong(p.start) + '<br>au ' + B.formatLong(p.end);
                 return '<div class="period-item">' +
-                        '<div class="period-dates">' + texte +
+                        '<div class="period-dates">' + libelle +
                             '<span class="period-nights">' + p.nights + ' nuit' + (p.nights > 1 ? 's' : '') + '</span>' +
                         '</div>' +
                         '<div class="period-buttons">' +
@@ -135,83 +173,157 @@ document.addEventListener('DOMContentLoaded', function () {
             }).join('');
         }
 
-        periodList.addEventListener('click', function (e) {
+        periodList.addEventListener('click', async function (e) {
             var voir = e.target.closest('[data-goto]');
             if (voir) { cal.goTo(voir.dataset.goto); return; }
 
             var suppr = e.target.closest('[data-del-start]');
-            if (suppr) {
-                var dates = B.range(suppr.dataset.delStart, suppr.dataset.delEnd);
+            if (!suppr) return;
+
+            var dates = B.range(suppr.dataset.delStart, suppr.dataset.delEnd);
+            try {
+                statut('Suppression…');
+                await B.removeDates(client, dates);
                 booked = booked.filter(function (d) { return dates.indexOf(d) === -1; });
-                enregistrer();
+                cal.setBooked(booked);
+                afficherPeriodes();
+                statut('Période libérée.', 'ok');
+            } catch (err) {
+                statut('Échec : ' + (err.message || err), 'error');
             }
         });
 
-        /* ---------- Blocage / libération par période ---------- */
+        /* --- Blocage / libération par période --- */
 
         function lirePeriode() {
             if (!rangeStart.value || !rangeEnd.value) {
-                message("Renseignez les deux dates.", true);
+                message('Renseignez les deux dates.', 'error');
                 return null;
             }
             if (rangeEnd.value < rangeStart.value) {
-                message("La date de fin doit être après la date de début.", true);
+                message('La date de fin doit être après la date de début.', 'error');
                 return null;
             }
-            return B.range(rangeStart.value, rangeEnd.value);
+            var dates = B.range(rangeStart.value, rangeEnd.value);
+            if (dates.length > 400) {
+                message('Période trop longue (400 nuits maximum).', 'error');
+                return null;
+            }
+            return dates;
         }
 
-        function message(texte, erreur) {
-            rangeMsg.textContent = texte;
-            rangeMsg.className = 'admin-msg ' + (erreur ? 'error' : 'ok');
+        document.getElementById('blockRange').addEventListener('click', async function () {
+            var dates = lirePeriode();
+            if (!dates) return;
+            try {
+                await B.addDates(client, dates);
+                booked = booked.concat(dates).filter(function (d, i, a) { return a.indexOf(d) === i; });
+                cal.setBooked(booked);
+                cal.goTo(dates[0]);
+                afficherPeriodes();
+                message(dates.length + ' nuit(s) marquée(s) comme réservée(s).', 'ok');
+            } catch (e) {
+                message('Échec : ' + (e.message || e), 'error');
+            }
+        });
+
+        document.getElementById('freeRange').addEventListener('click', async function () {
+            var dates = lirePeriode();
+            if (!dates) return;
+            try {
+                var avant = booked.length;
+                await B.removeDates(client, dates);
+                booked = booked.filter(function (d) { return dates.indexOf(d) === -1; });
+                cal.setBooked(booked);
+                cal.goTo(dates[0]);
+                afficherPeriodes();
+                message((avant - booked.length) + ' nuit(s) libérée(s).', 'ok');
+            } catch (e) {
+                message('Échec : ' + (e.message || e), 'error');
+            }
+        });
+
+        document.getElementById('refreshBtn').addEventListener('click', recharger);
+
+        /* --- Demandes de réservation --- */
+
+        async function chargerDemandes() {
+            if (!demandeList) return;
+            var res = await client
+                .from('booking_requests')
+                .select('*')
+                .neq('statut', 'archive')
+                .order('created_at', { ascending: false })
+                .limit(50);
+
+            if (res.error) {
+                demandeList.innerHTML = '<p class="admin-empty">Lecture impossible : ' + res.error.message + '</p>';
+                return;
+            }
+
+            var demandes = res.data || [];
+            demandeCount.textContent = demandes.filter(function (d) { return d.statut === 'nouveau'; }).length;
+
+            if (!demandes.length) {
+                demandeList.innerHTML = '<p class="admin-empty">Aucune demande pour le moment.</p>';
+                return;
+            }
+
+            demandeList.innerHTML = demandes.map(function (d) {
+                var sejour = (d.arrivee && d.depart)
+                    ? B.formatLong(d.arrivee) + ' → ' + B.formatLong(d.depart)
+                    : 'Dates non précisées';
+                return '<div class="request-item' + (d.statut === 'nouveau' ? ' is-new' : '') + '">' +
+                    '<div class="request-head">' +
+                        '<strong>' + echapper(d.nom) + '</strong>' +
+                        (d.statut === 'nouveau' ? '<span class="tag">nouveau</span>' : '') +
+                    '</div>' +
+                    '<div class="request-meta">' + sejour +
+                        ' · ' + (d.adultes || '?') + ' adulte(s)' +
+                        (d.enfants ? ', ' + d.enfants + ' enfant(s)' : '') +
+                        (d.animal ? ' · animal : ' + echapper(d.animal) : '') +
+                    '</div>' +
+                    '<div class="request-contact">' +
+                        '<a href="mailto:' + echapper(d.email) + '">' + echapper(d.email) + '</a>' +
+                        (d.telephone ? ' · <a href="tel:' + echapper(d.telephone) + '">' + echapper(d.telephone) + '</a>' : '') +
+                    '</div>' +
+                    (d.message ? '<p class="request-message">' + echapper(d.message) + '</p>' : '') +
+                    '<div class="request-actions">' +
+                        (d.statut === 'nouveau'
+                            ? '<button type="button" class="btn-ghost" data-traite="' + d.id + '">Marquer traitée</button>'
+                            : '') +
+                        '<button type="button" class="btn-ghost danger" data-archive="' + d.id + '">Archiver</button>' +
+                    '</div>' +
+                '</div>';
+            }).join('');
         }
 
-        document.getElementById('blockRange').addEventListener('click', function () {
-            var dates = lirePeriode();
-            if (!dates) return;
-            booked = booked.concat(dates);
-            enregistrer();
-            cal.goTo(dates[0]);
-            message(dates.length + ' jour' + (dates.length > 1 ? 's' : '') + ' marqué' + (dates.length > 1 ? 's' : '') + ' comme réservé' + (dates.length > 1 ? 's' : '') + '.', false);
-        });
+        if (demandeList) {
+            demandeList.addEventListener('click', async function (e) {
+                var traite = e.target.closest('[data-traite]');
+                var archive = e.target.closest('[data-archive]');
+                var cible = traite || archive;
+                if (!cible) return;
 
-        document.getElementById('freeRange').addEventListener('click', function () {
-            var dates = lirePeriode();
-            if (!dates) return;
-            var avant = booked.length;
-            booked = booked.filter(function (d) { return dates.indexOf(d) === -1; });
-            enregistrer();
-            cal.goTo(dates[0]);
-            message((avant - booked.length) + ' jour(s) libéré(s).', false);
-        });
+                var id = traite ? traite.dataset.traite : archive.dataset.archive;
+                var nouveauStatut = traite ? 'traite' : 'archive';
+                cible.disabled = true;
 
-        /* ---------- Publication ---------- */
+                var res = await client.from('booking_requests')
+                    .update({ statut: nouveauStatut }).eq('id', id);
 
-        document.getElementById('downloadBtn').addEventListener('click', function () {
-            var contenu = B.toFileContent(booked);
-            var blob = new Blob([contenu], { type: 'application/javascript;charset=utf-8' });
-            var url = URL.createObjectURL(blob);
-            var a = document.createElement('a');
-            a.href = url;
-            a.download = 'bookings-data.js';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+                if (res.error) { cible.disabled = false; alert('Échec : ' + res.error.message); return; }
+                chargerDemandes();
+            });
+        }
 
-            dirty = false;
-            publishState.className = 'admin-msg ok';
-            publishState.textContent = "Fichier téléchargé. Remplacez bookings-data.js sur le site pour publier.";
-        });
+        function echapper(s) {
+            return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+            });
+        }
 
-        document.getElementById('resetBtn').addEventListener('click', function () {
-            if (!window.confirm("Annuler toutes les modifications locales et revenir au fichier bookings-data.js publié ?")) return;
-            B.clearLocal();
-            booked = (window.BOOKINGS_DATA && window.BOOKINGS_DATA.booked ? window.BOOKINGS_DATA.booked : []).slice();
-            dirty = false;
-            rafraichir();
-        });
-
-        rafraichir();
+        recharger();
+        chargerDemandes();
     }
 });

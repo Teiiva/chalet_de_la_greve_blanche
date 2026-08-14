@@ -1,0 +1,28 @@
+# =====================================================================
+#  En-têtes HTTP de sécurité — lus automatiquement par Cloudflare Pages
+#  (fichier à la racine du site, sans extension)
+# =====================================================================
+
+/*
+  # Empêche l'affichage du site dans une iframe (clickjacking)
+  X-Frame-Options: SAMEORIGIN
+  # Empêche le navigateur de "deviner" un type de fichier
+  X-Content-Type-Options: nosniff
+  # Ne fuite pas l'URL complète vers les sites tiers
+  Referrer-Policy: strict-origin-when-cross-origin
+  # Coupe l'accès aux capteurs dont le site n'a aucun besoin
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=(), usb=()
+  # Force le HTTPS pendant 1 an (à activer une fois le domaine branché)
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  # Liste blanche des sources autorisées : tout le reste est bloqué,
+  # y compris un script injecté par une faille XSS
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; frame-src https://challenges.cloudflare.com https://www.google.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'
+
+# L'espace propriétaire ne doit jamais être indexé ni mis en cache
+/admin.html
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-store
+
+# Les fichiers versionnés peuvent être mis en cache longtemps
+/img/*
+  Cache-Control: public, max-age=2592000

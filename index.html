@@ -4,14 +4,79 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#195062">
-    <meta name="description" content="Location atypique au Guilvinec : mobil-home neuf et chalet pour 8 personnes, à 100 m de la plage, sans route à traverser.">
-    <title>Le Chalet de la Grève Blanche | Location Atypique au Guilvinec</title>
-    
+    <title>Location Le Guilvinec — Chalet & mobil-home 8 pers. à 100 m de la plage</title>
+    <meta name="description" content="Location de vacances au Guilvinec (Finistère sud) : chalet et mobil-home neuf pour 8 personnes, à 100 m de la plage sans route à traverser. Jardin privé, terrasse couverte, wifi. Disponibilités en direct.">
+    <link rel="canonical" href="https://chalet-greve-blanche.fr/">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <meta name="author" content="Le Chalet de la Grève Blanche">
+    <meta name="geo.region" content="FR-29">
+    <meta name="geo.placename" content="Le Guilvinec">
+
+    <!-- Partage sur les réseaux sociaux et messageries -->
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:site_name" content="Le Chalet de la Grève Blanche">
+    <meta property="og:title" content="Location au Guilvinec — Chalet & mobil-home à 100 m de la plage">
+    <meta property="og:description" content="Chalet et mobil-home neuf pour 8 personnes au Guilvinec, à 100 m de la plage sans route à traverser. Jardin privé, terrasse couverte, wifi.">
+    <meta property="og:url" content="https://chalet-greve-blanche.fr/">
+    <meta property="og:image" content="https://chalet-greve-blanche.fr/img/hero.jpg">
+    <meta property="og:image:alt" content="Le chalet et son jardin privé au domaine de la Grève Blanche">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <!-- Performance : on ouvre les connexions aux CDN au plus tôt -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preload" as="image" href="img/hero.jpg" fetchpriority="high">
+
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="onglet_logo.svg">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <link rel="stylesheet" href="style.css">
+
+    <!-- Données structurées : ce que Google lit pour afficher une fiche
+         enrichie (adresse, équipements, capacité) dans ses résultats -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "LodgingBusiness",
+      "@id": "https://chalet-greve-blanche.fr/#hebergement",
+      "name": "Le Chalet de la Grève Blanche",
+      "description": "Chalet et mobil-home neuf pour 8 personnes au domaine de la Grève Blanche, au Guilvinec, à 100 mètres de la plage sans route à traverser.",
+      "url": "https://chalet-greve-blanche.fr/",
+      "image": "https://chalet-greve-blanche.fr/img/hero.jpg",
+      "priceRange": "€€",
+      "petsAllowed": true,
+      "numberOfRooms": 2,
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Domaine de la Grève Blanche",
+        "addressLocality": "Le Guilvinec",
+        "postalCode": "29730",
+        "addressRegion": "Bretagne",
+        "addressCountry": "FR"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 47.8018379,
+        "longitude": -4.2980
+      },
+      "amenityFeature": [
+        { "@type": "LocationFeatureSpecification", "name": "Wifi gratuit", "value": true },
+        { "@type": "LocationFeatureSpecification", "name": "Parking privé (4 places)", "value": true },
+        { "@type": "LocationFeatureSpecification", "name": "Cuisine équipée", "value": true },
+        { "@type": "LocationFeatureSpecification", "name": "Jardin privé clôturé", "value": true },
+        { "@type": "LocationFeatureSpecification", "name": "Barbecue gaz", "value": true },
+        { "@type": "LocationFeatureSpecification", "name": "Terrasse couverte", "value": true },
+        { "@type": "LocationFeatureSpecification", "name": "Télévision", "value": true },
+        { "@type": "LocationFeatureSpecification", "name": "Lit bébé", "value": true }
+      ],
+      "containedInPlace": {
+        "@type": "Place",
+        "name": "Le Guilvinec, Pays Bigouden, Finistère"
+      }
+    }
+    </script>
 </head>
 <body>
 
@@ -169,9 +234,11 @@
         <div class="review-form-wrapper">
             <h3>Laissez un avis</h3>
             <form id="reviewForm">
-                <input type="text" name="name" placeholder="Votre Nom" required> 
-                
-                <select name="rating">
+                <label class="sr-only" for="reviewName">Votre nom</label>
+                <input type="text" id="reviewName" name="name" placeholder="Votre Nom" maxlength="80" required>
+
+                <label class="sr-only" for="reviewRating">Votre note</label>
+                <select id="reviewRating" name="rating">
                     <option value="5">⭐⭐⭐⭐⭐</option>
                     <option value="4">⭐⭐⭐⭐</option>
                     <option value="3">⭐⭐⭐</option>
@@ -179,9 +246,19 @@
                     <option value="1">⭐</option>
                 </select>
 
-                <textarea name="review" placeholder="Votre message..." required></textarea>
-                
+                <label class="sr-only" for="reviewText">Votre message</label>
+                <textarea id="reviewText" name="review" placeholder="Votre message..." maxlength="1500" required></textarea>
+
+                <!-- Piège à robots : invisible pour un humain, rempli par les bots -->
+                <div class="hp-field" aria-hidden="true">
+                    <label for="reviewSiteWeb">Site web</label>
+                    <input type="text" id="reviewSiteWeb" name="site_web" tabindex="-1" autocomplete="off">
+                </div>
+
+                <div id="turnstileReview" class="captcha-box"></div>
+
                 <button type="submit" class="btn-secondary">Envoyer mon avis</button>
+                <p id="reviewMsg" class="form-msg"></p>
             </form>
         </div>
     </section>
@@ -199,13 +276,13 @@
             
             <form id="bookingForm" class="contact-form">
                 <div class="form-row">
-                    <input type="text" placeholder="Nom & Prénom" required>
-                    <input type="email" placeholder="Email" required>
+                    <input type="text" name="nom" placeholder="Nom & Prénom" maxlength="100" autocomplete="name" required>
+                    <input type="email" name="email" placeholder="Email" maxlength="150" autocomplete="email" required>
                 </div>
                 <div class="form-row">
-                    <input type="tel" placeholder="Téléphone" required>
-                    <select>
-                        <option>Animal de compagnie ?</option>
+                    <input type="tel" name="telephone" placeholder="Téléphone" maxlength="30" autocomplete="tel" required>
+                    <select name="animal">
+                        <option value="">Animal de compagnie ?</option>
                         <option value="non">Non</option>
                         <option value="oui">Oui</option>
                     </select>
@@ -222,11 +299,22 @@
                 </div>
                 <p id="dateWarning" class="date-warning"></p>
                 <div class="form-row">
-                    <input type="number" placeholder="Adultes" min="1" max="8">
-                    <input type="number" placeholder="Enfants" min="0">
+                    <input type="number" name="adultes" placeholder="Adultes" min="1" max="8">
+                    <input type="number" name="enfants" placeholder="Enfants" min="0" max="8">
                 </div>
-                <textarea placeholder="Votre message..." rows="4"></textarea>
+                <textarea name="message" placeholder="Votre message..." rows="4" maxlength="2000"></textarea>
+
+                <!-- Piège à robots : invisible pour un humain, rempli par les bots -->
+                <div class="hp-field" aria-hidden="true">
+                    <label for="bookingSiteWeb">Site web</label>
+                    <input type="text" id="bookingSiteWeb" name="site_web" tabindex="-1" autocomplete="off">
+                </div>
+
+                <div id="turnstileBooking" class="captcha-box"></div>
+
                 <button type="submit" class="btn-primary full-width">Envoyer ma demande</button>
+                <p id="bookingMsg" class="form-msg"></p>
+                <p class="form-legal">Vos coordonnées servent uniquement à répondre à cette demande et ne sont jamais transmises à des tiers.</p>
             </form>
         </div>
     </section>
@@ -270,8 +358,10 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
     <script src="bookings-data.js"></script>
     <script src="calendar.js"></script>
     <script src="script.js"></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onloadTurnstileCallback&render=explicit" async defer></script>
 </body>
 </html>

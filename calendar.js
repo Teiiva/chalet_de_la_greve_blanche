@@ -93,46 +93,59 @@ window.Booking = (function () {
         }
     }
 
-    /* On garde la source la plus récente : le fichier publié ou les
-       modifications locales faites depuis l'admin sur ce navigateur. */
-    function load() {
+    /* Secours hors ligne : le fichier publié, ou le dernier cache local.
+       Sert uniquement si Supabase est injoignable. */
+    function loadFallback() {
         var f = readFile();
         var l = readLocal();
-        if (l && new Date(l.updatedAt) > new Date(f.updatedAt)) return l;
-        return f;
+        if (l && new Date(l.updatedAt) > new Date(f.updatedAt)) return l.booked;
+        return f.booked;
     }
 
-    function save(booked) {
-        var payload = {
-            booked: booked.slice().sort(),
-            updatedAt: new Date().toISOString()
-        };
+    function cacheLocal(booked) {
         try {
-            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+            window.localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                booked: booked.slice().sort(),
+                updatedAt: new Date().toISOString()
+            }));
+        } catch (e) { /* navigation privée : sans importance */ }
+    }
+
+    /* ---------- Source de vérité : Supabase ---------- */
+
+    /* Lecture publique des nuits réservées (RLS : select autorisé à tous).
+       En cas d'échec réseau, on retombe sur le cache local. */
+    async function fetchBookings(client) {
+        if (!client) return loadFallback();
+        try {
+            var res = await client
+                .from('bookings')
+                .select('date')
+                .order('date', { ascending: true });
+
+            if (res.error) throw res.error;
+
+            var dates = (res.data || []).map(function (r) { return r.date; });
+            cacheLocal(dates);
+            return dates;
         } catch (e) {
-            console.warn('Sauvegarde locale impossible :', e);
+            console.warn('Calendrier : lecture Supabase impossible, affichage du cache.', e.message || e);
+            return loadFallback();
         }
-        return payload;
     }
 
-    function clearLocal() {
-        try { window.localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+    /* Écriture réservée au propriétaire connecté (RLS : rôle authenticated) */
+    async function addDates(client, dates) {
+        if (!dates.length) return;
+        var rows = dates.map(function (d) { return { date: d }; });
+        var res = await client.from('bookings').upsert(rows, { onConflict: 'date' });
+        if (res.error) throw res.error;
     }
 
-    /* Génère le contenu du fichier bookings-data.js à publier */
-    function toFileContent(booked) {
-        var lines = booked.slice().sort().map(function (d) {
-            return '        "' + d + '"';
-        }).join(',\n');
-        return '/* =====================================================================\n' +
-            '   bookings-data.js  —  Dates réservées du Chalet de la Grève Blanche\n' +
-            '   Généré le ' + new Date().toLocaleString('fr-FR') + ' depuis admin.html\n' +
-            '   Remplacez le fichier bookings-data.js du site par celui-ci.\n' +
-            '   ===================================================================== */\n\n' +
-            'window.BOOKINGS_DATA = {\n' +
-            '    updatedAt: "' + new Date().toISOString() + '",\n' +
-            '    booked: [\n' + lines + '\n    ]\n' +
-            '};\n';
+    async function removeDates(client, dates) {
+        if (!dates.length) return;
+        var res = await client.from('bookings').delete().in('date', dates);
+        if (res.error) throw res.error;
     }
 
     /* ---------- Rendu du calendrier ---------- */
@@ -280,10 +293,10 @@ window.Booking = (function () {
         formatLong: formatLong,
         range: range,
         groupPeriods: groupPeriods,
-        load: load,
-        save: save,
-        clearLocal: clearLocal,
-        toFileContent: toFileContent,
+        loadFallback: loadFallback,
+        fetchBookings: fetchBookings,
+        addDates: addDates,
+        removeDates: removeDates,
         Calendar: Calendar
     };
 })();

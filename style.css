@@ -1141,3 +1141,131 @@ body.lightbox-open .navbar { opacity: 0; visibility: hidden; }
     .admin-calendar .calendar-wrapper,
     .admin-card .calendar-wrapper { padding: 0; }
 }
+
+/* =====================================================================
+   FORMULAIRES : captcha, messages, anti-spam
+   ===================================================================== */
+
+/* Libellés lisibles par les lecteurs d'écran uniquement */
+.sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Champ piège : caché aux humains, visible pour les robots.
+   display:none est évité, certains bots l'ignorent — on le sort de l'écran. */
+.hp-field {
+    position: absolute !important;
+    left: -9999px !important;
+    top: auto;
+    width: 1px; height: 1px;
+    overflow: hidden;
+}
+
+.captcha-box { margin: 6px 0 18px; min-height: 65px; }
+
+.form-msg {
+    display: none;
+    margin-top: 14px;
+    padding: 12px 15px;
+    border-radius: var(--radius);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.form-msg.ok {
+    display: block;
+    background: #e8f5e9;
+    color: #2e7d32;
+    border-left: 3px solid #2e7d32;
+}
+
+.form-msg.error {
+    display: block;
+    background: #ffebee;
+    color: #c62828;
+    border-left: 3px solid #c62828;
+}
+
+.form-legal {
+    font-size: 0.78rem;
+    color: var(--text-light);
+    margin-top: 12px;
+    line-height: 1.45;
+}
+
+/* =====================================================================
+   ESPACE PROPRIÉTAIRE : demandes de réservation
+   ===================================================================== */
+
+.request-list { margin-top: 12px; }
+
+.request-item {
+    border: 1px solid #eef1f4;
+    border-left: 3px solid #dde3e8;
+    border-radius: 6px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    background: #fcfdfe;
+}
+
+.request-item.is-new {
+    border-left-color: var(--secondary);
+    background: #fffdf8;
+}
+
+.request-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+}
+
+.request-head strong { font-family: var(--font-heading); color: var(--primary); }
+
+.tag {
+    background: var(--secondary);
+    color: var(--white);
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 2px 8px;
+    border-radius: 20px;
+}
+
+.request-meta { font-size: 0.85rem; color: var(--text-light); margin-bottom: 6px; }
+.request-contact { font-size: 0.85rem; margin-bottom: 8px; word-break: break-word; }
+.request-contact a { color: var(--primary); text-decoration: underline; }
+
+.request-message {
+    font-size: 0.88rem;
+    background: var(--white);
+    border: 1px solid #eef1f4;
+    border-radius: 5px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.request-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.request-actions .btn-ghost { font-size: 0.78rem; padding: 7px 13px; }
+
+/* Deux champs sur l'écran de connexion admin */
+.admin-login-box input[type="email"] {
+    width: 100%;
+    padding: 13px 16px;
+    border: 1px solid #dde3e8;
+    border-radius: var(--radius);
+    font-family: var(--font-body);
+    font-size: 1rem;
+    margin-bottom: 12px;
+}
+
+.admin-login-box input[type="email"]:focus { outline: none; border-color: var(--primary); }
